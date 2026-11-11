@@ -1,6 +1,6 @@
 # Evaluation and observed results
 
-Evaluation date: **2026-11-11**. Host: Windows 10, Node.js **24.22.1**, npm **11.16.0**. This document distinguishes local evidence from deployment/inference evidence. No Cloudflare account was authenticated, no public resource was deployed, and no real model inference was performed.
+Evaluation date: **2026-11-11**. Host: Windows 10, Node.js **24.22.1**, npm **11.16.0**. GitHub publication, hosted CI, and the public synthetic/demo deployment are verified. Local generation tests use mocked inference; public generation attempts stop at disabled/throttled responses. No real model inference has been performed.
 
 ## Verification results
 
@@ -17,8 +17,9 @@ Evaluation date: **2026-11-11**. Host: Windows 10, Node.js **24.22.1**, npm **11
 | Local `workerd` `/health`                                      | HTTP 200; `liveEnabled: false`; exact configured model | Real local Worker runtime, no AI/GitHub calls                                                     |
 | Public unauthenticated GitHub compare                          | HTTP 200; `ahead`; 2 total/returned commits            | Real external GitHub API, no inference                                                            |
 | Built Worker handler + real public GitHub + mocked AI/limiters | HTTP 200; 2 sources; 1 entry; correct source URL       | Node import of actual Worker bundle, **not** deployed Cloudflare or real inference                |
-| Cloudflare deployed endpoints/inference                        | **Not run**                                            | Gate E unauthorized                                                                               |
-| GitHub-hosted Actions / Vercel deployment                      | **Not run**                                            | Workflow/config prepared only; no remote repository or push                                       |
+| Actual Cloudflare model inference                              | Not run; still unauthorized                            | Live flags remain false                                                                           |
+| GitHub-hosted Actions                                          | Passed on initial commit dbe2df4                       | Real hosted CI, no inference or deployment credentials                                            |
+| Vercel / Cloudflare hosting                                    | Deployed and public synthetic workflow verified        | Workers Free and Vercel Hobby confirmed; live flags false                                         |
 
 The clean lockfile installation `npm ci --offline --cache .npm-cache` also passed, installing 296 packages from the existing cache after local preview processes were stopped. No permission change or remote account operation was needed.
 
@@ -26,7 +27,21 @@ Additional real local Worker requests returned HTTP 503 `LIVE_AI_DISABLED` for g
 
 The request-protection tests include a disabled-production branch that exercises mocked limiter bindings and confirms zero GitHub/model calls. Neither this test nor a successful dry run verifies native deployed limiter effectiveness or Free-plan eligibility for a specific account.
 
-The local checkout is initialized as an empty Git repository with no remote and no commits. No account, billing configuration, DNS, unrelated project, or public deployment was changed.
+The source was published with owner authorization to [mubidotjs/ai-release-notes-generator](https://github.com/mubidotjs/ai-release-notes-generator) at initial commit [`dbe2df4e411b1ad8aced58551cde69df5d7a16d8`](https://github.com/mubidotjs/ai-release-notes-generator/commit/dbe2df4e411b1ad8aced58551cde69df5d7a16d8). The owner and empty remote were verified first, the exact uploaded tree contains 42 intended files, and the [hosted Quality checks run](https://github.com/mubidotjs/ai-release-notes-generator/actions/runs/43017214236) passed every step. No billing configuration, DNS, unrelated project, or live inference was changed.
+
+The publication verification repeated type checking, lint, 105 unit/component tests, both builds, and 9 browser tests successfully. Local frontend HTTP 200 was verified on temporary port 5480 after the configured 5400 start was refused; Windows excluded port ranges include 5173. The independently started local Worker returned HTTP 200 for health and HTTP 503 `LIVE_AI_DISABLED` for generation. `.vercel/` was added to the existing ignore rules before publication. The staged source/artifact scan found no credential patterns or forbidden generated/cache paths.
+
+## Public deployment evaluation (2026-11-11)
+
+- Frontend: [https://ai-release-notes-generator.vercel.app](https://ai-release-notes-generator.vercel.app), HTTP 200 without cookies, with the expected application title and configured security headers. Vercel built only `web/dist` using `npm ci` and `npm run build -w web`, from the authorized GitHub repository with Node 24.x. No Vercel backend was deployed.
+- Worker: [https://ai-release-notes-generator.mubikhan69.workers.dev](https://ai-release-notes-generator.mubikhan69.workers.dev). Current CORS-deployment version: `bf450dae-0b40-4989-94a8-991d0ea47bcc`. Public `/health` returned HTTP 200, `@cf/google/gemma-4-26b-a4b-it`, and `liveEnabled: false`.
+- Plan evidence came from the signed-in ChatGPT in-app browser: Cloudflare Workers showed **Free, $0, Current plan**; the selected Vercel team showed **Hobby**. Wrangler OAuth alone could not read subscriptions (403), so `default_usage_model: standard` was deliberately not treated as Free-plan proof.
+- The deployed settings API confirmed `AI`, visitor namespace `11001` at 2/60s, aggregate namespace `11002` at 10/60s, both live flags `false`, and `ALLOWED_ORIGINS=https://ai-release-notes-generator.vercel.app`. No billing/paid-plan settings, DNS, or unrelated project settings were changed. Vercel's existing protection settings were retained; the canonical production URL is public.
+- In the public application, Try Demo displayed **DEMO DATA**, the no-inference notice, four categorized entries, exact supporting excerpts, and synthetic source labels. Markdown preview contained 1,059 characters. Copy was verified by an actual clipboard paste matching the preview after the destination URL input's newline removal. Downloaded `demo-release-notes-v1.3.0.md` matched the preview exactly. These were real public UI checks, not mocked HTTP responses.
+- The public Generate action displayed the disabled-live error; Try Demo restored the synthetic result. No generated response was represented as real inference. Keyboard Tab moved from Try Demo to Preview with a visible focus ring. Mobile testing at 390×844 showed no horizontal overflow, correctly associated labels for all three form fields, and the demo label. The temporary viewport override was reset.
+- Public API checks at 17:33 PKT (12:33 UTC) returned OPTIONS 204 with the exact allowed origin, health 200 with that origin, and HTTP 403 `ORIGIN_NOT_ALLOWED` without an allow-origin header for an unrelated origin. Visitor attempts returned **503, 503, 503, then 429 `RATE_LIMITED` with `Retry-After: 60` on attempt 4**. This observed overshoot is consistent with approximate edge counters; it is not evidence of an exact two-request cap.
+- The aggregate binding's configuration was deployed and read back, and its rejection branch is covered by unit tests. Its threshold was **not** exhausted through multiple real public visitors, and no strict worldwide budget was demonstrated. Missing/failing-protection behavior is covered by local tests; production bindings were not deliberately removed.
+- All public generation attempts stopped before GitHub retrieval/model inference because live generation remained disabled or throttled. Native bindings and the disabled workflow were verified; actual model access, output grounding under real inference, model latency, and account-wide usage totals were not measured. No paid API or billing activation was introduced.
 
 ## Windows development port correction (2026-11-11)
 
@@ -92,8 +107,8 @@ The model has no tools or execution access. Commit content is isolated as JSON d
 
 ## Cost and deployment limitations
 
-The preferred model's documented Workers Free eligibility and pricing were checked against official Cloudflare documentation on the evaluation date. Account-specific eligibility and the native rate-limit binding's availability/effectiveness on the owner's Free account remain unverified. Both live flags are false; missing controls fail closed; no paid provider dependency, billing activation, credential, or paid fallback was introduced.
+The preferred model's documented Workers Free eligibility and pricing were checked against official Cloudflare documentation on the evaluation date. The owner's Workers Free and Vercel Hobby plans were confirmed in their signed-in dashboards, and native limiter bindings were accepted/read back with actual visitor throttling observed. Model-specific inference access remains unverified because no model call was authorized. Both live flags are false; no paid provider dependency, billing activation, model API key, or paid fallback was introduced. Normal owner-approved Wrangler OAuth credentials remain only in ignored local tool state.
 
 Per-visitor and constant-key aggregate limiters are approximate and independent by Cloudflare location. They are not strict worldwide budgets. Cloudflare's free inference allocation is account-wide. Timeouts bound waiting but cannot promise cancellation of already-started provider compute. These limits are documented in [architecture](ARCHITECTURE.md) and [deployment](DEPLOYMENT.md).
 
-Gates A–D cover this locally implemented, tested, security-reviewed, deployment-ready MVP. Gate E remains unauthorized and unverified: native account access, public URLs, real edge controls, actual successful generation, and public failure-path behavior must be checked only after separate owner approval.
+Gates A–D are complete, and the separately authorized public synthetic/demo deployment is verified. Gate E remains unauthorized and unverified for actual AI inference: only after explicit owner approval may the live flags be changed and a real successful generation plus inference-related failure path be tested. Public URLs, account plans, disabled-live behavior, and observed visitor throttling do not substitute for that future verification.

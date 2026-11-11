@@ -1,6 +1,19 @@
-# Deployment readiness — owner authorization required
+# Deployment runbook and verified status
 
-No commands in this document have been used to create remote resources. Gates A–D stop at local verification. Gate E, remote repository creation/push, deployments, live enablement, account changes, and DNS changes require separate explicit owner authorization. No domain or DNS change is required: use free `vercel.app` and `workers.dev` URLs.
+The owner authorized publication to the existing GitHub repository and deployment of the disabled Worker and static frontend on 2026-11-11. GitHub publication, hosted CI, both deployments, exact-origin CORS, public synthetic exports, and native visitor throttling are verified. Both live flags remain false. Actual AI inference, billing changes, paid services, unrelated project changes, and DNS changes remain unauthorized.
+
+| Verified target                      | Result                                                                                                                                  |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Repository                           | [mubidotjs/ai-release-notes-generator](https://github.com/mubidotjs/ai-release-notes-generator)                                         |
+| Production frontend                  | [ai-release-notes-generator.vercel.app](https://ai-release-notes-generator.vercel.app)                                                  |
+| Worker                               | [ai-release-notes-generator.mubikhan69.workers.dev](https://ai-release-notes-generator.mubikhan69.workers.dev)                          |
+| Health                               | [Public `/health`](https://ai-release-notes-generator.mubikhan69.workers.dev/health): HTTP 200, exact Gemma model, `liveEnabled: false` |
+| Plans                                | Cloudflare dashboard: **Free, $0, Current plan**. Vercel team dashboard: **Hobby**.                                                     |
+| Worker version after CORS deployment | `bf450dae-0b40-4989-94a8-991d0ea47bcc`                                                                                                  |
+| Initial Vercel production deployment | `dpl_5PzahUthwNjTG6ms6JfKWgYyEYe9`, READY, GitHub source commit `dbe2df4e411b1ad8aced58551cde69df5d7a16d8`                              |
+| Live controls                        | `LIVE_AI_ENABLED=false`, `ABUSE_CONTROLS_VERIFIED=false`, read back from deployed bindings                                              |
+
+No custom domain or DNS change was made. Vercel's existing deployment-protection configuration was retained; the canonical production URL above was verified with no cookies or authentication. Preview/hashed deployment URLs may remain protected.
 
 ## Free prerequisites and stop conditions
 
@@ -12,7 +25,7 @@ No commands in this document have been used to create remote resources. Gates A�
 
 ## 1. GitHub and local release preparation
 
-After explicit approval, create the empty public repository, initialize/commit this checkout if necessary, set the authorized remote, and push. Do not perform those steps under Gates A–D. The intended owner is `mubidotjs`; update attribution if the authorized destination differs.
+Published to the owner-created, empty public repository [mubidotjs/ai-release-notes-generator](https://github.com/mubidotjs/ai-release-notes-generator). The authenticated owner was verified as `mubidotjs`; no remote history was overwritten. Initial commit: [`dbe2df4e411b1ad8aced58551cde69df5d7a16d8`](https://github.com/mubidotjs/ai-release-notes-generator/commit/dbe2df4e411b1ad8aced58551cde69df5d7a16d8). Its [Quality checks run](https://github.com/mubidotjs/ai-release-notes-generator/actions/runs/43017214236) passed all steps, including installation, type checking, lint, unit/component tests, static/Worker dry-run builds, and browser tests.
 
 Run `npm ci`, `npm run test:browser:install`, and `npm run check` on Node 24.22.1. The GitHub Actions workflow uses read-only repository permissions, mock dependencies, and no deployment secrets. Keep it as quality CI; do not add automatic Worker deployment or inference.
 
@@ -29,34 +42,34 @@ The first command opens Cloudflare authentication; the second creates/updates on
 
 `worker/wrangler.jsonc` contains the production AI binding, native visitor/aggregate rate-limit bindings, and disabled flags:
 
-| Setting                   | Initial production value                           |
-| ------------------------- | -------------------------------------------------- |
-| `LIVE_AI_ENABLED`         | `"false"`                                          |
-| `ABUSE_CONTROLS_VERIFIED` | `"false"`                                          |
-| `ALLOWED_ORIGINS`         | exact frontend origin, comma-separated if multiple |
-| `AI`                      | native Workers AI binding                          |
-| `VISITOR_LIMITER`         | namespace `11001`, 2 attempts / 60 seconds         |
-| `GLOBAL_LIMITER`          | namespace `11002`, 10 attempts / 60 seconds        |
+| Setting                   | Initial production value                        |
+| ------------------------- | ----------------------------------------------- |
+| `LIVE_AI_ENABLED`         | `"false"`                                       |
+| `ABUSE_CONTROLS_VERIFIED` | `"false"`                                       |
+| `ALLOWED_ORIGINS`         | `https://ai-release-notes-generator.vercel.app` |
+| `AI`                      | native Workers AI binding                       |
+| `VISITOR_LIMITER`         | namespace `11001`, 2 attempts / 60 seconds      |
+| `GLOBAL_LIMITER`          | namespace `11002`, 10 attempts / 60 seconds     |
 
 Reserve the namespace IDs for this project; rate bindings sharing a namespace/account/location share counters. Change IDs if already used by another application. Missing binding support is a blocker, not a reason to subscribe to a paid plan.
 
 The default local environment has no remote AI binding. The production environment is explicitly selected for the build dry run and eventual deploy. Avoid `wrangler dev --remote`, remote AI local-development bindings, or live model tests during Gates A–D.
 
-Use the resulting `https://ai-release-notes-generator.<account-subdomain>.workers.dev` URL only after Wrangler actually returns it. No verified URL exists yet.
+Wrangler returned and public requests verified `https://ai-release-notes-generator.mubikhan69.workers.dev`. Deployment used the documented `production` environment and an explicit account selection for the owner-confirmed Free account. No temporary account, paid fallback, or inference call was used.
 
 ## 3. Deploy the static frontend to Vercel Hobby
 
 After approval, import the public GitHub repository into a new personal Hobby project.
 
-| Vercel setting     | Value                                                        |
-| ------------------ | ------------------------------------------------------------ |
-| Root Directory     | repository root (`.`), not `web/`                            |
-| Framework          | Vite                                                         |
-| Node.js            | 24.x                                                         |
-| Install Command    | `npm ci`                                                     |
-| Build Command      | `npm run build -w web`                                       |
-| Output Directory   | `web/dist`                                                   |
-| Public environment | `VITE_WORKER_URL=https://<verified-worker-host>.workers.dev` |
+| Vercel setting     | Value                                                                       |
+| ------------------ | --------------------------------------------------------------------------- |
+| Root Directory     | repository root (`.`), not `web/`                                           |
+| Framework          | Vite                                                                        |
+| Node.js            | 24.x                                                                        |
+| Install Command    | `npm ci`                                                                    |
+| Build Command      | `npm run build -w web`                                                      |
+| Output Directory   | `web/dist`                                                                  |
+| Public environment | `VITE_WORKER_URL=https://ai-release-notes-generator.mubikhan69.workers.dev` |
 
 The root `vercel.json` specifies these static build settings and security headers. Do not run the root `build` script on Vercel: it includes a Worker **local dry run**, unnecessary for static deployment. There are no Vercel API routes or Functions.
 
@@ -91,4 +104,4 @@ For release smoke checks, verify static assets and headers, `/health`, disabled/
 
 To stop inference after a separately authorized launch, set `LIVE_AI_ENABLED` back to `"false"` in the approved configuration and redeploy. Demo remains available. Restore the prior verified frontend deployment in Vercel if UI regression occurs. For Worker rollback, redeploy the last verified source with live inference disabled first. Never roll back into a version whose live flags or protections are unknown. Remote rollback is also an owner-authorized mutation.
 
-Current blockers to public launch: separate authorization; account authentication and Free-plan confirmation; remote repository push; verified Vercel/Worker URLs and CORS; deployed binding/protection verification; actual inference and failure-path verification. None blocks local Gates A–D work.
+There are no remaining blockers for the authorized public synthetic/demo deployment. Actual inference remains outside this authorization; deployment and disabled-endpoint verification do not establish a passed live-inference Gate E. Before any future enablement, recheck model Free-plan eligibility, review the approximate limiter/aggregate-verification limitations, obtain explicit owner authorization, then perform the successful generation and failure-path checks in section 5.

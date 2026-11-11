@@ -2,7 +2,7 @@
 
 Turn a public GitHub comparison into concise, categorized release notes with source commit links and supporting excerpts. React and TypeScript provide the interface; a Cloudflare Worker retrieves commits and calls Workers AI through its native binding.
 
-**Local portfolio MVP. No public deployment or real inference has been verified. Live AI is disabled in committed configuration.** Demo and automated checks require no account, credentials, or model calls. See [evaluation results](docs/EVALUATION.md) for the exact verification boundary.
+**Public demo: [ai-release-notes-generator.vercel.app](https://ai-release-notes-generator.vercel.app). Live AI remains disabled.** Choose **Try Demo** for the complete synthetic release-notes workflow. The [Worker health endpoint](https://ai-release-notes-generator.mubikhan69.workers.dev/health) reports the configured model and `liveEnabled: false`. GitHub CI and public demo/export checks passed; actual model inference has not been performed. See [evaluation results](docs/EVALUATION.md) for the exact verification boundary.
 
 ## Features
 
@@ -42,7 +42,7 @@ docs/                Architecture, deployment, evaluation
 
 ## Local setup
 
-Use Node.js **24.22.1** and npm 11+. Clone this repository when it is published, or open the supplied checkout. Run from the repository root:
+Use Node.js **24.22.1** and npm 11+. Clone the public repository, or open the supplied checkout. Run from the repository root:
 
 ```sh
 npm ci --cache .npm-cache
@@ -72,7 +72,7 @@ npm run test:browser
 
 `npm run check` runs the checks in sequence after installing Chromium. The browser installer stores binaries in `.cache/browsers/`. It does not install system packages; on Linux use a supported host with Chromium dependencies already available (GitHub's Ubuntu runner provides these).
 
-The Worker build is **`wrangler deploy --dry-run`**, which bundles locally and does not deploy. The frontend output is `web/dist/`; the Worker dry-run output is `worker/dist/`. CI uses mocks and synthetic data, without Cloudflare credentials or inference. GitHub-hosted CI has not been executed until a separately authorized repository push occurs.
+The Worker build is **`wrangler deploy --dry-run`**, which bundles locally and does not deploy. The frontend output is `web/dist/`; the Worker dry-run output is `worker/dist/`. CI uses mocks and synthetic data, without Cloudflare credentials or inference. [GitHub-hosted quality checks](https://github.com/mubidotjs/ai-release-notes-generator/actions/workflows/ci.yml) passed on the published implementation.
 
 ## Demo and live modes
 
@@ -82,7 +82,7 @@ The Worker build is **`wrangler deploy --dry-run`**, which bundles locally and d
 
 Cloudflare documentation checked on **2026-11-11** lists this model as available on Workers Free. Workers Free includes 10,000 neurons per day, shared across the account; requests fail after exhaustion. This is documentation verification, not confirmation of this owner's account eligibility or a successful model call. Recheck before launch. [Model eligibility](https://developers.cloudflare.com/changelog/post/2026-07-28-models-require-workers-paid/), [pricing](https://developers.cloudflare.com/workers-ai/platform/pricing/).
 
-Live enablement requires both `LIVE_AI_ENABLED` and `ABUSE_CONTROLS_VERIFIED`, native AI/rate-limit bindings, and trusted visitor identity. Both flags remain `false`. See [deployment instructions](docs/DEPLOYMENT.md). No remote repository, public URLs, deployment, DNS changes, billing setup, or live enablement is part of Gates A–D.
+Live enablement requires both `LIVE_AI_ENABLED` and `ABUSE_CONTROLS_VERIFIED`, native AI/rate-limit bindings, and trusted visitor identity. Both flags remain `false` in committed and deployed configuration. The separately authorized public deployment uses confirmed Workers Free and Vercel Hobby plans, with the Worker allowing only the exact production frontend origin. Public visitor throttling was observed; counters remain approximate and location-local. See [deployment instructions](docs/DEPLOYMENT.md). Live inference/Gate E still requires separate owner authorization.
 
 ## Demonstration script
 
@@ -101,6 +101,6 @@ Live enablement requires both `LIVE_AI_ENABLED` and `ABUSE_CONTROLS_VERIFIED`, n
 - Rate-limit bindings are approximate and independent per Cloudflare location. The aggregate key is not a strict worldwide counter, and distributed abuse can exhaust the free account allocation. CORS is not authentication. [Cloudflare rate limits](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/).
 - Inference deadlines bound response waiting; the binding does not document cancellable provider compute. No automatic retry occurs.
 - Clipboard access needs a secure browser context and permission. Markdown remains selectable if copying fails.
-- Public deployment and real model quality/latency remain unverified. Vercel Hobby is for personal/non-commercial projects. No scale or accuracy measurements are claimed.
+- The public synthetic workflow is verified. Real model access, output quality, latency, and distributed abuse resistance remain unverified. The aggregate limiter was configured/read back but not exhausted with multiple public visitors. Vercel Hobby is for personal/non-commercial projects. No scale or accuracy measurements are claimed.
 
-Built by Mubashir Hussain. Intended source repository: `mubidotjs/ai-release-notes-generator` (remote creation/push pending owner authorization).
+Built by Mubashir Hussain. Source: [mubidotjs/ai-release-notes-generator](https://github.com/mubidotjs/ai-release-notes-generator). The [initial published commit](https://github.com/mubidotjs/ai-release-notes-generator/commit/dbe2df4e411b1ad8aced58551cde69df5d7a16d8) passed [GitHub Actions](https://github.com/mubidotjs/ai-release-notes-generator/actions/runs/43017214236).
