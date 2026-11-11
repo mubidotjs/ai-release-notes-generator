@@ -2,7 +2,7 @@
 
 Turn a public GitHub comparison into concise, categorized release notes with source commit links and supporting excerpts. React and TypeScript provide the interface; a Cloudflare Worker retrieves commits and calls Workers AI through its native binding.
 
-**Public demo: [ai-release-notes-generator.vercel.app](https://ai-release-notes-generator.vercel.app). Live AI remains disabled.** Choose **Try Demo** for the complete synthetic release-notes workflow. The [Worker health endpoint](https://ai-release-notes-generator.mubikhan69.workers.dev/health) reports the configured model and `liveEnabled: false`. GitHub CI and public demo/export checks passed; actual model inference has not been performed. See [evaluation results](docs/EVALUATION.md) for the exact verification boundary.
+**Live application: [release-notes.mubashirhussain.dev](https://release-notes.mubashirhussain.dev).** The original [vercel.app URL](https://ai-release-notes-generator.vercel.app) also works. One real Gemma generation through the branded frontend, source evidence, Markdown copy/download, and an invalid-reference failure were verified on 2026-11-11. **Try Demo** remains a clearly labeled synthetic workflow with no inference. See [evaluation results](docs/EVALUATION.md) for evidence and limitations.
 
 ## Features
 
@@ -80,16 +80,16 @@ The Worker build is **`wrangler deploy --dry-run`**, which bundles locally and d
 
 **Live implementation:** The Worker uses `@cf/google/gemma-4-26b-a4b-it` only through `env.AI.run()`. The input/output configuration is centralized in the shared limits and Worker AI adapter, and checked against the installed official model types. No external model API key is required. No model or provider substitution is configured.
 
-Cloudflare documentation checked on **2026-11-11** lists this model as available on Workers Free. Workers Free includes 10,000 neurons per day, shared across the account; requests fail after exhaustion. This is documentation verification, not confirmation of this owner's account eligibility or a successful model call. Recheck before launch. [Model eligibility](https://developers.cloudflare.com/changelog/post/2026-07-28-models-require-workers-paid/), [pricing](https://developers.cloudflare.com/workers-ai/platform/pricing/).
+Cloudflare documentation checked on **2026-11-11** lists this model as available on Workers Free. Workers Free includes 10,000 neurons per day, shared across the account; requests fail after exhaustion. The signed-in account remains on Workers Free, and one actual model call through the native binding succeeded. Recheck eligibility before future configuration changes. [Model eligibility](https://developers.cloudflare.com/changelog/post/2026-07-28-models-require-workers-paid/), [pricing](https://developers.cloudflare.com/workers-ai/platform/pricing/).
 
-Live enablement requires both `LIVE_AI_ENABLED` and `ABUSE_CONTROLS_VERIFIED`, native AI/rate-limit bindings, and trusted visitor identity. Both flags remain `false` in committed and deployed configuration. The separately authorized public deployment uses confirmed Workers Free and Vercel Hobby plans, with the Worker allowing only the exact production frontend origin. Public visitor throttling was observed; counters remain approximate and location-local. See [deployment instructions](docs/DEPLOYMENT.md). Live inference/Gate E still requires separate owner authorization.
+Live enablement requires both `LIVE_AI_ENABLED` and `ABUSE_CONTROLS_VERIFIED`, native AI/rate-limit bindings, and trusted visitor identity. The owner authorized production activation after deployed Free-plan/protection checks. Production flags are `true` in committed and deployed configuration; default local development and credential-free tests remain disabled/mocked. Only the branded and original production frontend origins are allowed. Public visitor throttling was observed; counters remain approximate and location-local. See [deployment instructions](docs/DEPLOYMENT.md).
 
 ## Demonstration script
 
 1. Open the app and choose **Try Demo**. Point out the demo badge and “no live inference” notice.
 2. Inspect `v1.2.0 → v1.3.0`, categorized entries, exact supporting excerpts, and synthetic source identifiers.
 3. Switch to Markdown, copy it, and download the labeled `.md` file.
-4. After separately authorized live launch, compare `https://github.com/octocat/Hello-World`, base `553c2077f0edc3d5dc5d17262f6aa498e69d6f8e`, head `7fd1a60b01f91b314f59955a4e4d4e80d8edf11d`. Revalidate these public refs before presenting; a successful inference for them has not been observed here. This small comparison demonstrates retrieval/source links rather than a feature-rich release.
+4. For the verified live example, compare `https://github.com/mubidotjs/ai-release-notes-generator`, base `42ddd8b46011abb9decf00c3a027ee92d3bf4604`, head `d533970dfe710836cb2c17fd4382e2159a8a3bc5`. This is a one-commit comparison about verifying Node 24 before Vercel dependency installation. Revalidate refs and respect the 60-second visitor window before another request.
 5. Follow a real source SHA link, compare the note against the commit message, export Markdown, and show a meaningful failure using a nonexistent head ref. Explain any partial-coverage warning.
 
 ## Limitations
@@ -101,6 +101,6 @@ Live enablement requires both `LIVE_AI_ENABLED` and `ABUSE_CONTROLS_VERIFIED`, n
 - Rate-limit bindings are approximate and independent per Cloudflare location. The aggregate key is not a strict worldwide counter, and distributed abuse can exhaust the free account allocation. CORS is not authentication. [Cloudflare rate limits](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/).
 - Inference deadlines bound response waiting; the binding does not document cancellable provider compute. No automatic retry occurs.
 - Clipboard access needs a secure browser context and permission. Markdown remains selectable if copying fails.
-- The public synthetic workflow is verified. Real model access, output quality, latency, and distributed abuse resistance remain unverified. The aggregate limiter was configured/read back but not exhausted with multiple public visitors. Vercel Hobby is for personal/non-commercial projects. No scale or accuracy measurements are claimed.
+- The public synthetic workflow and one real model generation are verified. A single successful example does not establish general output quality, model reliability, latency guarantees, or distributed abuse resistance. The aggregate limiter was configured/read back but not exhausted with multiple public visitors. Vercel Hobby is for personal/non-commercial projects. No scale or accuracy measurements are claimed.
 
 Built by Mubashir Hussain. Source: [mubidotjs/ai-release-notes-generator](https://github.com/mubidotjs/ai-release-notes-generator). The [initial published commit](https://github.com/mubidotjs/ai-release-notes-generator/commit/dbe2df4e411b1ad8aced58551cde69df5d7a16d8) passed [GitHub Actions](https://github.com/mubidotjs/ai-release-notes-generator/actions/runs/43017214236).
