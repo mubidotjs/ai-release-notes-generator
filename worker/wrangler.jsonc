@@ -17,7 +17,7 @@
       "vars": {
         "LIVE_AI_ENABLED": "false",
         "ABUSE_CONTROLS_VERIFIED": "false",
-        "ALLOWED_ORIGINS": "https://ai-release-notes-generator.vercel.app",
+        "ALLOWED_ORIGINS": "https://release-notes.mubashirhussain.dev,https://ai-release-notes-generator.vercel.app",
       },
       "ai": { "binding": "AI" },
       "ratelimits": [
