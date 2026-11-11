@@ -1,0 +1,45 @@
+{
+  "name": "ai-release-notes-generator",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.x",
+    "npm": ">=11"
+  },
+  "workspaces": [
+    "web",
+    "worker",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n web,worker \"npm run dev -w web\" \"npm run dev -w worker\"",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "test": "vitest run",
+    "test:browser": "node scripts/browser.mjs test",
+    "test:browser:install": "node scripts/browser.mjs install chromium",
+    "build": "npm run build -w web && npm run build -w worker",
+    "check": "npm run typecheck && npm run lint && npm test && npm run build && npm run test:browser"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@cloudflare/workers-types": "5.20261110.1",
+    "@eslint/js": "^10.0.0",
+    "@playwright/test": "1.65.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.9",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "concurrently": "^9.2.1",
+    "eslint": "10.14.0",
+    "eslint-plugin-react-hooks": "^7.0.0",
+    "globals": "^17.0.0",
+    "jsdom": "^29.0.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "5.1.0"
+  }
+}

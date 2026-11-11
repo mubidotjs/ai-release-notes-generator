@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "esModuleInterop": true,
+    "types": ["node", "vite/client", "@testing-library/jest-dom"]
+  },
+  "include": ["web", "worker/src", "shared", "fixtures", "tests", "*.ts"],
+  "exclude": ["node_modules", "**/dist", "**/.wrangler"]
+}

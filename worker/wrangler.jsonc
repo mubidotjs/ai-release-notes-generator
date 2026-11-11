@@ -1,0 +1,37 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "ai-release-notes-generator",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-11",
+  "workers_dev": true,
+  "preview_urls": false,
+  "vars": {
+    "LIVE_AI_ENABLED": "false",
+    "ABUSE_CONTROLS_VERIFIED": "false",
+    "ALLOWED_ORIGINS": "http://localhost:5400,http://127.0.0.1:5400",
+  },
+  // No remote AI binding in default local development.
+  "env": {
+    "production": {
+      "name": "ai-release-notes-generator",
+      "vars": {
+        "LIVE_AI_ENABLED": "false",
+        "ABUSE_CONTROLS_VERIFIED": "false",
+        "ALLOWED_ORIGINS": "",
+      },
+      "ai": { "binding": "AI" },
+      "ratelimits": [
+        {
+          "name": "VISITOR_LIMITER",
+          "namespace_id": "11001",
+          "simple": { "limit": 2, "period": 60 },
+        },
+        {
+          "name": "GLOBAL_LIMITER",
+          "namespace_id": "11002",
+          "simple": { "limit": 10, "period": 60 },
+        },
+      ],
+    },
+  },
+}

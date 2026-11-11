@@ -1,0 +1,20 @@
+{
+  "name": "web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@release-notes/shared": "*",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "vite": "8.3.8",
+    "@vitejs/plugin-react": "6.3.0"
+  }
+}
