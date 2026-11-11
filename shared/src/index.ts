@@ -259,7 +259,10 @@ export function createResult(input: {
   const title = `Release notes: ${repo.owner}/${repo.repo}`;
   const summary = entries
     .slice(0, 2)
-    .map((entry) => entry.text)
+    .map((entry) => {
+      const text = entry.text.trim();
+      return /[.!?…]["'’”)\]]*$/.test(text) ? text : `${text}.`;
+    })
     .join(" ");
   const warnings = [
     ...(input.mode === "demo"

@@ -7,6 +7,8 @@ import App from "./App";
 import { generateNotes } from "./api";
 import { getDemoResult } from "../../fixtures/demo";
 import { downloadMarkdown } from "./export";
+import { createResult, escapeMarkdown } from "@release-notes/shared";
+import { productionExportInput } from "../../fixtures/production-export";
 
 vi.mock("./api", () => ({ workerUrl: "", generateNotes: vi.fn() }));
 afterEach(() => {
@@ -15,6 +17,28 @@ afterEach(() => {
 });
 
 describe("generator interface", () => {
+  it("shows the corrected production-case summary consistently in the UI and Markdown", async () => {
+    const result = createResult(productionExportInput);
+    vi.mocked(generateNotes).mockResolvedValue(result);
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(screen.getByRole("button", { name: /Try Demo/ }));
+    await user.click(
+      screen.getByRole("button", { name: "Generate Release Notes" }),
+    );
+    const summary = await screen.findByRole("region", { name: "Summary" });
+    expect(summary).toHaveTextContent(
+      "Verify Node 24 version prior to installing Vercel dependencies. Add support for Workers redirects and production AI activation.",
+    );
+    expect(screen.getByText("4 of 4 commits processed")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Markdown" }));
+    expect(screen.getByLabelText("Markdown preview")).toHaveValue(
+      result.markdown,
+    );
+    expect(result.markdown).toContain(
+      `## Summary\n\n${escapeMarkdown(result.summary)}\n\n`,
+    );
+  });
   it("has accessible inputs and explicitly labels deterministic demo data", async () => {
     const user = userEvent.setup();
     render(<App />);

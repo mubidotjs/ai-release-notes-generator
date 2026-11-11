@@ -15,6 +15,159 @@ import {
   demoSources,
   getDemoResult,
 } from "../../fixtures/demo";
+import { productionExportInput } from "../../fixtures/production-export";
+
+describe("production export summary regression", () => {
+  const expectedSummary =
+    "Verify Node 24 version prior to installing Vercel dependencies. Add support for Workers redirects and production AI activation.";
+  const markdownSummary = (markdown: string) =>
+    markdown.split("## Summary\n\n")[1]!.split("\n\n")[0];
+
+  it("separates the two production descriptions into sentences without rewriting entries", () => {
+    const result = createResult(productionExportInput);
+    expect(result.summary).toBe(expectedSummary);
+    expect(result.entries).toEqual(productionExportInput.entries);
+    expect(markdownSummary(result.markdown)).toBe(
+      escapeMarkdown(result.summary),
+    );
+  });
+
+  it.each([".", "!", "?", "…", '."', "!’", "?)"])(
+    "preserves existing terminal punctuation %s without duplication",
+    (ending) => {
+      const entries = productionExportInput.entries
+        .slice(0, 2)
+        .map((entry) => ({
+          ...entry,
+          text: `  ${entry.text}${ending}  `,
+        }));
+      const result = createResult({ ...productionExportInput, entries });
+      expect(result.summary).toBe(
+        `${productionExportInput.entries[0]!.text}${ending} ${productionExportInput.entries[1]!.text}${ending}`,
+      );
+      expect(markdownSummary(result.markdown)).toBe(
+        escapeMarkdown(result.summary),
+      );
+    },
+  );
+
+  it("trims a single description and adds its missing full stop", () => {
+    const entry = productionExportInput.entries[0]!;
+    const result = createResult({
+      ...productionExportInput,
+      entries: [{ ...entry, text: `  ${entry.text}  ` }],
+    });
+    expect(result.summary).toBe(`${entry.text}.`);
+    expect(result.entries[0]!.text).toBe(entry.text);
+    expect(markdownSummary(result.markdown)).toBe(
+      escapeMarkdown(result.summary),
+    );
+  });
+
+  it("keeps only the first two descriptions when three or more entries exist", () => {
+    const result = createResult(productionExportInput);
+    expect(result.entries).toHaveLength(3);
+    expect(result.summary).toBe(expectedSummary);
+    expect(result.summary).not.toContain(
+      productionExportInput.entries[2]!.text,
+    );
+    expect(result.markdown).toContain(productionExportInput.entries[2]!.text);
+  });
+
+  it("fits the response limit even with two maximum-length descriptions", () => {
+    const sources = ["a", "b"].map((character, i) => ({
+      sha: productionExportInput.sources[i]!.sha,
+      message: character.repeat(240),
+    }));
+    const result = createResult({
+      ...productionExportInput,
+      sources,
+      comparison: {
+        ...productionExportInput.comparison,
+        totalCommits: 2,
+        processedCommits: 2,
+      },
+      entries: sources.map((source) => ({
+        category: "other",
+        text: source.message,
+        evidence: [{ sha: source.sha, quote: source.message }],
+      })),
+    });
+    expect(result.summary).toBe(
+      `${sources[0]!.message}. ${sources[1]!.message}.`,
+    );
+    expect(result.summary).toHaveLength(483);
+    expect(markdownSummary(result.markdown)).toBe(
+      escapeMarkdown(result.summary),
+    );
+  });
+
+  it("lists all four processed sources while allowing documentation-only content to be omitted", () => {
+    const result = createResult(productionExportInput);
+    const sourceSection = result.markdown.split("## Source commits\n\n")[1];
+    expect(sourceSection).toBe(
+      productionExportInput.sources
+        .map(
+          (source) =>
+            `- [${source.sha.slice(0, 7)}](https://github.com/mubidotjs/ai-release-notes-generator/commit/${source.sha}): ${source.message}`,
+        )
+        .join("\n") + "\n",
+    );
+    expect(result.sources).toEqual(productionExportInput.sources);
+    expect(result.comparison).toMatchObject({
+      processedCommits: 4,
+      totalCommits: 4,
+      truncated: false,
+    });
+    expect(result.entries).toHaveLength(3);
+    expect(
+      result.entries.flatMap((entry) =>
+        entry.evidence.map((evidence) => evidence.sha),
+      ),
+    ).not.toContain(productionExportInput.sources[3]!.sha);
+    for (const entry of result.entries) {
+      for (const evidence of entry.evidence) {
+        const source = result.sources.find(
+          (source) => source.sha === evidence.sha,
+        )!;
+        expect(source.message).toContain(evidence.quote);
+        expect(result.markdown).toContain(
+          `[${source.sha.slice(0, 7)}](${commitUrl(result.comparison.repositoryUrl, source.sha)})`,
+        );
+      }
+    }
+    expect(result.markdown).not.toContain("## Documentation");
+    expect(result.markdown).not.toContain("Partial coverage");
+  });
+
+  it("preserves safe Markdown escaping and the entry's original wording", () => {
+    const text = "Use <tag> & [labels]";
+    const source = { ...productionExportInput.sources[0]!, message: text };
+    const result = createResult({
+      ...productionExportInput,
+      entries: [
+        {
+          category: "other",
+          text,
+          evidence: [{ sha: source.sha, quote: text }],
+        },
+      ],
+      sources: [source],
+      comparison: {
+        ...productionExportInput.comparison,
+        totalCommits: 1,
+        processedCommits: 1,
+      },
+    });
+    expect(result.entries[0]!.text).toBe(text);
+    expect(result.summary).toBe(`${text}.`);
+    expect(markdownSummary(result.markdown)).toBe(
+      "Use &lt;tag&gt; &amp; \\[labels\\]\\.",
+    );
+    expect(result.markdown).not.toContain("<tag>");
+    expect(result.markdown).toContain("- Use &lt;tag&gt; &amp; \\[labels\\] (");
+  });
+});
 
 describe("repository and reference validation", () => {
   it.each([
