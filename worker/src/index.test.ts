@@ -65,7 +65,7 @@ describe("Worker generation with mocked GitHub, AI, and rate-limit bindings", ()
     expect(s.fetcher.mock.calls[0]![0]).toBe(
       "https://api.github.com/repos/demo/release-toolkit/compare/release%2Fone...v1.3.0?per_page=20&page=1",
     );
-    expect(s.fetcher.mock.calls[0]![1]?.redirect).toBe("error");
+    expect(s.fetcher.mock.calls[0]![1]?.redirect).toBe("manual");
     expect(s.fetcher.mock.calls[0]![1]?.headers).not.toHaveProperty(
       "Authorization",
     );
@@ -76,6 +76,23 @@ describe("Worker generation with mocked GitHub, AI, and rate-limit bindings", ()
     );
     expect(s.aggregate).toHaveBeenCalledWith({ key: "generate:all-visitors" });
   });
+  it.each([301, 302, 303, 307, 308])(
+    "rejects a GitHub %s redirect without following its destination or invoking AI",
+    async (status) => {
+      const s = setup(
+        new Response(null, {
+          status,
+          headers: { Location: "https://untrusted.example/internal" },
+        }),
+      );
+      const response = await s.handle(s.request(), s.env);
+      expect(response.status).toBe(502);
+      expect((await response.json()).error.code).toBe("GITHUB_UNAVAILABLE");
+      expect(s.fetcher).toHaveBeenCalledOnce();
+      expect(s.fetcher.mock.calls[0]![1]?.redirect).toBe("manual");
+      expect(s.ai).not.toHaveBeenCalled();
+    },
+  );
   it("accepts the model chat completion envelope", async () => {
     const s = setup(undefined, {
       choices: [

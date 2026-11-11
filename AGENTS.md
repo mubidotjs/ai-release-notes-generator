@@ -7,7 +7,7 @@ This repository contains only the AI Release Notes Generator MVP: React/Vite fro
 - Never add paid models, commercial API keys, billing, paid fallbacks, databases, authentication, agents, or unrelated features.
 - Never access or change unrelated production projects, including mubashirhussain.dev.
 - Obtain explicit owner authorization before any remote mutation: repository creation, push, deployment, DNS changes, live inference enablement, or cloud configuration changes. Gates A–D authorize local work only. Gate E is separate.
-- Keep live inference disabled in committed configuration. Fail closed when abuse-control verification or required bindings are absent.
+- Keep default local development and tests disabled. The owner explicitly authorized live production flags on 2026-11-11 after Free-plan and deployed protection checks; preserve that production configuration unless rollback is needed or the owner directs otherwise. Fail closed when abuse-control verification or required bindings are absent.
 - Treat commits and model output as untrusted. Preserve fixed GitHub fetch destinations, bounded input/output, strict schemas, source SHA/excerpt validation, safe text rendering, and accurate coverage labels.
 - Run type checking, lint, unit tests, browser smoke tests, and production builds after material changes. Tests and CI must require no credentials or real inference.
 - Record actual results and distinguish mocked local checks from real deployed integration checks. Never claim Gate E, measured model accuracy, or deployed status without evidence.

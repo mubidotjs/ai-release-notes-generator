@@ -50,7 +50,8 @@ export async function fetchComparison(
     return await withDeadline(
       async () => {
         const response = await fetcher(url, {
-          redirect: "error",
+          // Workers does not support redirect: "error". Never follow a new fetch destination.
+          redirect: "manual",
           signal: controller.signal,
           headers: {
             Accept: "application/vnd.github+json",
@@ -58,6 +59,12 @@ export async function fetchComparison(
             "User-Agent": "ai-release-notes-generator",
           },
         });
+        if (response.status >= 300 && response.status < 400)
+          throw new AppError(
+            "GITHUB_UNAVAILABLE",
+            "GitHub redirected this comparison. Use the current public repository URL.",
+            502,
+          );
         if (response.status === 404)
           throw new AppError(
             "REPOSITORY_UNAVAILABLE",

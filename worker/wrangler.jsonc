@@ -14,9 +14,10 @@
   "env": {
     "production": {
       "name": "ai-release-notes-generator",
+      // Owner-approved live launch after deployed Free-plan/protection checks, 2026-11-11.
       "vars": {
-        "LIVE_AI_ENABLED": "false",
-        "ABUSE_CONTROLS_VERIFIED": "false",
+        "LIVE_AI_ENABLED": "true",
+        "ABUSE_CONTROLS_VERIFIED": "true",
         "ALLOWED_ORIGINS": "https://release-notes.mubashirhussain.dev,https://ai-release-notes-generator.vercel.app",
       },
       "ai": { "binding": "AI" },
