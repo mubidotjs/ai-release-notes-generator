@@ -66,12 +66,18 @@ After approval, import the public GitHub repository into a new personal Hobby pr
 | Root Directory     | repository root (`.`), not `web/`                                           |
 | Framework          | Vite                                                                        |
 | Node.js            | 24.x                                                                        |
-| Install Command    | `npm ci`                                                                    |
+| Install Command    | Version logging and Node 24 guard, then `npm ci` (exact command in `vercel.json`) |
 | Build Command      | `npm run build -w web`                                                      |
 | Output Directory   | `web/dist`                                                                  |
 | Public environment | `VITE_WORKER_URL=https://ai-release-notes-generator.mubikhan69.workers.dev` |
 
 The root `vercel.json` specifies these static build settings and security headers. Do not run the root `build` script on Vercel: it includes a Worker **local dry run**, unnecessary for static deployment. There are no Vercel API routes or Functions.
+
+### Node version incident, 2026-11-11
+
+Failed deployment `dpl_BoamwkP1utVtc7TGbg1UfLcNeTJj` belongs to a separate existing project, `ai-release-notes-generator-vulx` (`prj_nnYtIh0K5CiqD55seydRGECULXK6`). Its API reports Node `26.x`; its install log reports Node `v26.13.0`, npm `11.20.0`, and `EBADENGINE`. It built commit `42ddd8b46011abb9decf00c3a027ee92d3bf4604` from the repository root without a previous build cache or project environment overrides. The intended project, `ai-release-notes-generator` (`prj_E5hGf3OeleoadyDekWpJdp2h9Giz`), reports Node `24.x`, an empty root-directory setting (repository root), and successfully built that same commit. The reported settings discrepancy was between project identities. The duplicate project is left untouched.
+
+Keep deployments and domain assignment scoped to the intended project ID. The committed install command now prints `node --version` and `npm --version`, rejects any Node major other than 24 before installation, then runs unchanged `npm ci`. Preserve `engines.node: "24.x"` and `engine-strict=true`. Explicitly select `nodeVersion: "24.x"` when creating a deployment. No engine bypass, alternate dependency resolution, or Node range widening is permitted. The `cache-dir` warning also occurred in the successful deployment and is nonfatal; no repository setting defines it and no global configuration was changed.
 
 `VITE_WORKER_URL` is compiled into public assets. It is a public URL, never a secret. Rebuild the frontend after changing it. The CSP permits HTTPS `*.workers.dev` API connections; tighten it to the exact Worker host before final public launch if desired. A custom API hostname would require a matching explicit CSP change and separate DNS authorization.
 

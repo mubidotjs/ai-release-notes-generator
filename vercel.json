@@ -1,6 +1,6 @@
 {
   "framework": "vite",
-  "installCommand": "npm ci",
+  "installCommand": "node --version && npm --version && node -e \"if (process.versions.node.split('.')[0] !== '24') { console.error('Node.js 24.x is required'); process.exit(1); }\" && npm ci",
   "buildCommand": "npm run build -w web",
   "outputDirectory": "web/dist",
   "headers": [
